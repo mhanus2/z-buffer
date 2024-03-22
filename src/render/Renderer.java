@@ -45,6 +45,7 @@ public class Renderer {
         Vertex newB = new Vertex(b.getPosition().mul(transformationMat), b.getColor(), b.getUv());
         Vertex newC = new Vertex(c.getPosition().mul(transformationMat), c.getColor(), c.getUv());
 
+        // Fast clip
         if (newA.getPosition().getX() > newA.getPosition().getW() && newB.getPosition().getX() > newB.getPosition().getW() && newC.getPosition().getX() > newC.getPosition().getW()) return;
         if (newA.getPosition().getX() < -newA.getPosition().getW() && newB.getPosition().getX() < -newB.getPosition().getW() && newC.getPosition().getX() < -newC.getPosition().getW()) return;
         if (newA.getPosition().getY() > newA.getPosition().getW() && newB.getPosition().getY() > newB.getPosition().getW() && newC.getPosition().getY() > newC.getPosition().getW()) return;
@@ -52,29 +53,52 @@ public class Renderer {
         if (newA.getPosition().getZ() > newA.getPosition().getW() && newB.getPosition().getZ() > newB.getPosition().getW() && newC.getPosition().getZ() > newC.getPosition().getW()) return;
         if (newA.getPosition().getZ() < 0 && newB.getPosition().getZ() < 0 && newC.getPosition().getZ() <0) return;
 
-        // TODO: sežadit vrcholy podle z, aby aZ = max
+        // Sorting Z
+        if (newA.getPosition().getZ() < newB.getPosition().getZ()) {
+            Vertex temp = newA;
+            newA = newB;
+            newB = temp;
+        }
+        if (newB.getPosition().getZ() < newC.getPosition().getZ()) {
+            Vertex temp = newB;
+            newB = newC;
+            newC = temp;
+        }
+        if (newA.getPosition().getZ() < newB.getPosition().getZ()) {
+            Vertex temp = newA;
+            newA = newB;
+            newB = temp;
+        }
 
         double zMin = 0;
 
-        if(a.getPosition().getZ() < zMin)
+        if(newA.getPosition().getZ() < zMin)
             return;
 
-        if(b.getPosition().getZ() < zMin) {
-            double tv1 = (zMin - a.getPosition().getZ()) / (b.getPosition().getZ() - a.getPosition().getZ());
-            Vertex v1 = a.mul(1 - tv1).add(b.mul(tv1));
+        if(newB.getPosition().getZ() < zMin) {
+            double tv1 = (zMin - newA.getPosition().getZ()) / (newB.getPosition().getZ() - newA.getPosition().getZ());
+            Vertex v1 = newA.mul(1 - tv1).add(newB.mul(tv1));
 
-            double tv2 = (zMin - a.getPosition().getZ()) / (c.getPosition().getZ() - a.getPosition().getZ());
-            Vertex v2 = a.mul(1 - tv2).add(c.mul(tv2));
+            double tv2 = (zMin - newA.getPosition().getZ()) / (newC.getPosition().getZ() - newA.getPosition().getZ());
+            Vertex v2 = newA.mul(1 - tv2).add(newC.mul(tv2));
 
-            triangleRasterizer.rasterize(a, v1, v2);
+            triangleRasterizer.rasterize(newA, v1, v2);
             return;
         }
 
-        if(c.getPosition().getZ() < zMin) {
-            // TODO: implementovat
+        if(newC.getPosition().getZ() < zMin) {
+            double tv1 = -newA.getPosition().getZ() / (newC.getPosition().getZ() - newA.getPosition().getZ());
+            Vertex v1 = newA.mul(1 - tv1).add(newC.mul(tv1));
+
+            double tv2 = -newB.getPosition().getZ() / (newC.getPosition().getZ() - newB.getPosition().getZ());
+            Vertex v2 = newB.mul(1 - tv2).add(newC.mul(tv1));
+
+            triangleRasterizer.rasterize(newA, newB, v2);
+            triangleRasterizer.rasterize(newA, v1, v2);
+            return;
         }
 
-        triangleRasterizer.rasterize(a, b, c);
+        triangleRasterizer.rasterize(newA, newB, newC);
     }
 
     // TODO: metoda render pro seznam solidů
