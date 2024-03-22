@@ -3,6 +3,8 @@ package raster;
 import solid.Vertex;
 import transforms.Col;
 
+import java.util.Optional;
+
 public class TriangleRasterizer {
     private final ZBuffer zBuffer;
 
@@ -11,54 +13,75 @@ public class TriangleRasterizer {
     }
 
     public void rasterize(Vertex a, Vertex b, Vertex c) {
-        // TODO: seřadit vrcholy pod y od min
+        Optional<Vertex> newA = a.dehomog();
+        Optional<Vertex> newB = a.dehomog();
+        Optional<Vertex> newC = a.dehomog();
 
-        // TODO: odebrat, jen pro debug
-        ((ImageBuffer) zBuffer.getImageBuffer()).getImg().getGraphics().drawLine(
-                (int) a.getPosition().getX(), (int) a.getPosition().getY(),
-                (int) b.getPosition().getX(), (int) b.getPosition().getY()
-        );
-        ((ImageBuffer) zBuffer.getImageBuffer()).getImg().getGraphics().drawLine(
-                (int) a.getPosition().getX(), (int) a.getPosition().getY(),
-                (int) c.getPosition().getX(), (int) c.getPosition().getY()
-        );
-        ((ImageBuffer) zBuffer.getImageBuffer()).getImg().getGraphics().drawLine(
-                (int) b.getPosition().getX(), (int) b.getPosition().getY(),
-                (int) c.getPosition().getX(), (int) c.getPosition().getY()
-        );
+        if (newA.isEmpty() || newB.isEmpty() || newC.isEmpty()) return;
 
-        int xA = (int) a.getPosition().getX();
-        int yA = (int) a.getPosition().getY();
-        int yB = (int) b.getPosition().getY();
-        int xB = (int) b.getPosition().getX();
-        int yC = (int) c.getPosition().getY();
-        int xC = (int) c.getPosition().getX();
+        Vertex nA = newA.get();
+        Vertex nB = newB.get();
+        Vertex nC = newC.get();
 
-        // Cyklus od A do B (první část)
-        for (int y = yA; y <= (int) b.getPosition().getY(); y++) {
-            // V1
-            double t1 = (y - yA) / (double) (yB - yA);
-            int x1 = (int) Math.round((1 - t1) * xA + t1 * xB);
-            //double z1 = (1 - t1) * zA + t1 * zB;
-            Col col1 = a.getColor().mul(1 - t1).add(b.getColor().mul(t1));
+        int aX = (int) Math.round(a.getPosition().getX());
+        int aY = (int) Math.round(a.getPosition().getY());
+        double aZ = a.getPosition().getZ();
 
-            // V2
-            double t2 = (y - yA) / (double) (yC - yA);
-            int x2 = (int) Math.round((1 - t2) * xA + t2 * xC);
-            //double z2 = (1 - t2) * zA + t2 * zC;
-            Col col2 = a.getColor().mul(1 - t2).add(c.getColor().mul(t2));
+        int bX = (int) Math.round(b.getPosition().getX());
+        int bY = (int) Math.round(b.getPosition().getY());
+        double bZ = b.getPosition().getZ();
 
-            // TODO: kontrola, jestli x1 < x2
-            for (int x = x1; x <= x2; x++) {
-                double t3 = (x - x1) / (double)(x2 - x1);
-                //double z = (1 - t3) * z1 + t3 * z2;
-                Col col = col1.mul(1 - t3).add(col2.mul(t3));
+        int cX = (int) Math.round(c.getPosition().getX());
+        int cY = (int) Math.round(c.getPosition().getY());
+        double cZ = c.getPosition().getZ();
 
-                zBuffer.setPixelWithZTest(x, y, 0.5, col);
+        for (int y = aY; y <= bY; y++) {
+            double tAB = (y - aY) / (double) (bY - aY);
+            int xAB = (int) Math.round((1 - tAB) * aX + tAB * bX);
+            // TODO: zAB
+            Vertex vAB = a.mul(1 - tAB).add(b.mul(tAB));
+            // Vertex vAB = lerp.lerp(a, b, tAB);
+
+            double tAC = (y - aY) / (double) (cY - aY);
+            int xAC = (int) Math.round((1 - tAC) * aX + tAC * cX);
+            Vertex vAC = a.mul(1 - tAC).add(c.mul(tAC));
+            // TODO: zAC
+
+//            int xAB = (int) AB.getPosition().getX();
+//            int xAC = (int) (AC.getPosition().getX() + 1);
+
+            // TODO: xAB musí být menší než xAC
+            for (int x = xAB; x <= xAC; x++) {
+                double t = (x - xAB) / (double) (xAC - xAB);
+                Vertex pixel = vAB.mul(1 - t).add(vAC.mul(t));
+
+                // TODO: nový interpolační koef. -> počítám z xAB a xAC
+                // TODO: spočítám z
+                zBuffer.setPixelWithZTest(x, y, 0.5, pixel.getColor());
             }
         }
 
-        // TODO: Cyklus od B do C (druhá část)
+        for (int y = bY; y <= cY; y++) {
+            double tBC = (y - bY) / (double) (cY - bY);
+            int xBC = (int) Math.round((1 - tBC) * bX + tBC * cX);
+            // TODO: zAB
+            Vertex vBC = b.mul(1 - tBC).add(c.mul(tBC));
+            // Vertex vAB = lerp.lerp(a, b, tAB);
 
+            double tAC = (y - aY) / (double) (cY - aY);
+            int xAC = (int) Math.round((1 - tAC) * aX + tAC * cX);
+            Vertex vAC = a.mul(1 - tAC).add(c.mul(tAC));
+            // TODO: zAC
+
+            // TODO: xAB musí být menší než xAC
+            for (int x = xBC; x <= xAC; x++) {
+                double t = (x - xBC) / (double) (xAC - xBC);
+                Vertex pixel = vBC.mul(1 - t).add(vAC.mul(t));
+
+                // TODO: nový interpolační koef. -> počítám z xAB a xAC
+                // TODO: spočítám z
+                zBuffer.setPixelWithZTest(x, y, 0.5, pixel.getColor());
+            }
+        }
     }
 }
