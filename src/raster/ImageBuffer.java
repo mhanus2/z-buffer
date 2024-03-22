@@ -4,6 +4,7 @@ import transforms.Col;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Optional;
 
 public class ImageBuffer implements Raster<Col> {
     private final BufferedImage img;
@@ -25,13 +26,19 @@ public class ImageBuffer implements Raster<Col> {
     }
 
     @Override
-    public Col getValue(int x, int y) {
-        return new Col(img.getRGB(x, y));
+    public Optional<Col> getValue(int x, int y) {
+        if (x >= 0 && y >= 0 && x < getWidth() && y < getHeight()) {
+            return Optional.of(new Col(img.getRGB(x, y)));
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
     public void setValue(int x, int y, Col color) {
-        img.setRGB(x, y, color.getRGB());
+        if (x >= 0 && y >= 0 && x < getWidth() && y < getHeight()) {
+            img.setRGB(x, y, color.getRGB());
+        }
     }
 
     @Override
