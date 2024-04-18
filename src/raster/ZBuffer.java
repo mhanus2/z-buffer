@@ -20,6 +20,14 @@ public class ZBuffer {
         imageBuffer.setValue(x, y, col);
     }
 
+    public int getWidth() {
+        return imageBuffer.getWidth();
+    }
+
+    public int getHeight() {
+        return imageBuffer.getHeight();
+    }
+
     // TODO: odebrat, jen pro debug
     public Raster<Col> getImageBuffer() {
         return imageBuffer;

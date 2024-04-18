@@ -2,6 +2,9 @@ package raster;
 
 import solid.Vertex;
 import transforms.Col;
+import transforms.Point2D;
+import transforms.Point3D;
+import transforms.Vec3D;
 
 import java.util.Optional;
 
@@ -13,6 +16,7 @@ public class TriangleRasterizer {
     }
 
     public void rasterize(Vertex a, Vertex b, Vertex c) {
+        // Dehomogenizace
         Optional<Vertex> newA = a.dehomog();
         Optional<Vertex> newB = a.dehomog();
         Optional<Vertex> newC = a.dehomog();
@@ -22,6 +26,17 @@ public class TriangleRasterizer {
         Vertex nA = newA.get();
         Vertex nB = newB.get();
         Vertex nC = newC.get();
+
+        // Transformace do okna
+        Vec3D vec3D1 = transformToWindow(nA.getPosition());
+        Vertex aa = new Vertex(new Point3D(vec3D1), nA.getColor());
+        Vec3D vec3D2 = transformToWindow(nB.getPosition());
+        Vertex bb = new Vertex(new Point3D(vec3D2), nB.getColor());
+        Vec3D vec3D3 = transformToWindow(nC.getPosition());
+        Vertex cc = new Vertex(new Point3D(vec3D3), nC.getColor());
+
+        // Seřazení podle y
+
 
         int aX = (int) Math.round(a.getPosition().getX());
         int aY = (int) Math.round(a.getPosition().getY());
@@ -83,5 +98,12 @@ public class TriangleRasterizer {
                 zBuffer.setPixelWithZTest(x, y, 0.5, pixel.getColor());
             }
         }
+    }
+
+    private Vec3D transformToWindow(Point3D vec) {
+        return new Vec3D(vec)
+                .mul(new Vec3D(1,-1,1))
+                .add(new Vec3D(1,1,0))
+                .mul(new Vec3D(zBuffer.getWidth() / 2f, zBuffer.getHeight() / 2f, 1));
     }
 }
