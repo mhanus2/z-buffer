@@ -29,27 +29,27 @@ public class TriangleRasterizer {
 
         // Transformation to window
         Vec3D vec3D1 = transformToWindow(nA.getPosition());
-        Vertex aa = new Vertex(new Point3D(vec3D1), nA.getColor());
+        a = new Vertex(new Point3D(vec3D1), nA.getColor());
         Vec3D vec3D2 = transformToWindow(nB.getPosition());
-        Vertex bb = new Vertex(new Point3D(vec3D2), nB.getColor());
+        b = new Vertex(new Point3D(vec3D2), nB.getColor());
         Vec3D vec3D3 = transformToWindow(nC.getPosition());
-        Vertex cc = new Vertex(new Point3D(vec3D3), nC.getColor());
+        c = new Vertex(new Point3D(vec3D3), nC.getColor());
 
         // Sorting y
-        if (aa.getPosition().getY() > bb.getPosition().getY()) {
-            Vertex temp = aa;
-            aa = bb;
-            bb = temp;
+        if (a.getPosition().getY() > b.getPosition().getY()) {
+            Vertex temp = a;
+            a = b;
+            b = temp;
         }
-        if (bb.getPosition().getY() > cc.getPosition().getY()) {
-            Vertex temp = bb;
-            bb = cc;
-            cc = temp;
+        if (b.getPosition().getY() > c.getPosition().getY()) {
+            Vertex temp = b;
+            b = c;
+            c = temp;
         }
-        if (aa.getPosition().getY() > bb.getPosition().getY()) {
-            Vertex temp = aa;
-            aa = bb;
-            bb = temp;
+        if (a.getPosition().getY() > b.getPosition().getY()) {
+            Vertex temp = a;
+            a = b;
+            b = temp;
         }
 
         int aX = (int) Math.round(a.getPosition().getX());
