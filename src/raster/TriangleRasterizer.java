@@ -16,7 +16,7 @@ public class TriangleRasterizer {
     }
 
     public void rasterize(Vertex a, Vertex b, Vertex c) {
-        // Dehomogenizace
+        // Dehomogenization
         Optional<Vertex> newA = a.dehomog();
         Optional<Vertex> newB = a.dehomog();
         Optional<Vertex> newC = a.dehomog();
@@ -27,7 +27,7 @@ public class TriangleRasterizer {
         Vertex nB = newB.get();
         Vertex nC = newC.get();
 
-        // Transformace do okna
+        // Transformation to window
         Vec3D vec3D1 = transformToWindow(nA.getPosition());
         Vertex aa = new Vertex(new Point3D(vec3D1), nA.getColor());
         Vec3D vec3D2 = transformToWindow(nB.getPosition());
@@ -35,8 +35,22 @@ public class TriangleRasterizer {
         Vec3D vec3D3 = transformToWindow(nC.getPosition());
         Vertex cc = new Vertex(new Point3D(vec3D3), nC.getColor());
 
-        // Seřazení podle y
-
+        // Sorting y
+        if (aa.getPosition().getY() > bb.getPosition().getY()) {
+            Vertex temp = aa;
+            aa = bb;
+            bb = temp;
+        }
+        if (bb.getPosition().getY() > cc.getPosition().getY()) {
+            Vertex temp = bb;
+            bb = cc;
+            cc = temp;
+        }
+        if (aa.getPosition().getY() > bb.getPosition().getY()) {
+            Vertex temp = aa;
+            aa = bb;
+            bb = temp;
+        }
 
         int aX = (int) Math.round(a.getPosition().getX());
         int aY = (int) Math.round(a.getPosition().getY());
