@@ -2,6 +2,8 @@ package raster;
 
 import transforms.Col;
 
+import java.util.Optional;
+
 public class ZBuffer {
     private final Raster<Col> imageBuffer;
     private final Raster<Double> depthBuffer;
@@ -12,12 +14,17 @@ public class ZBuffer {
     }
 
     public void setPixelWithZTest(int x, int y, double z, Col col) {
-        // TODO: načtu hodnotu z depth bufferu na souřadnici x, y
-        // TODO: kontrola, jestli jsem dostal validní hodnotu
-        // TODO: kontrola, jestli nové z  < staré z
-        // TODO: pokud platí: 1) Obarvit 2) zapsat nové z do depth bufferu
+        // Check if valid z value
+        if (0<=z && z<=1) {
+            // Load z value from DepthBuffer
+            Optional<Double> zOptional = depthBuffer.getValue(x,y);
+            if (zOptional.isPresent() && zOptional.get() > z) {
+                depthBuffer.setValue(x,y,z);
+                imageBuffer.setValue(x,y,col);
+            }
 
-        imageBuffer.setValue(x, y, col);
+            imageBuffer.setValue(x, y, col);
+        }
     }
 
     public int getWidth() {
