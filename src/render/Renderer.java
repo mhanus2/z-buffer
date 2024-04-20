@@ -6,6 +6,8 @@ import solid.Solid;
 import solid.Vertex;
 import transforms.Mat4;
 
+import java.util.List;
+
 //todo - interface
 public class Renderer {
     private TriangleRasterizer triangleRasterizer;
@@ -102,7 +104,10 @@ public class Renderer {
     }
 
     // TODO: metoda render pro seznam solidů
-
+    public void render(List<Solid> scene) {
+        for (Solid s : scene)
+            render(s);
+    }
 
     public void setView(Mat4 view) {
         this.view = view;
