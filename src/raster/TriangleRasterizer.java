@@ -1,8 +1,6 @@
 package raster;
 
 import solid.Vertex;
-import transforms.Col;
-import transforms.Point2D;
 import transforms.Point3D;
 import transforms.Vec3D;
 
@@ -18,8 +16,8 @@ public class TriangleRasterizer {
     public void rasterize(Vertex a, Vertex b, Vertex c) {
         // Dehomogenization
         Optional<Vertex> newA = a.dehomog();
-        Optional<Vertex> newB = a.dehomog();
-        Optional<Vertex> newC = a.dehomog();
+        Optional<Vertex> newB = b.dehomog();
+        Optional<Vertex> newC = c.dehomog();
 
         if (newA.isEmpty() || newB.isEmpty() || newC.isEmpty()) return;
 
@@ -54,62 +52,76 @@ public class TriangleRasterizer {
 
         int aX = (int) Math.round(a.getPosition().getX());
         int aY = (int) Math.round(a.getPosition().getY());
-        double aZ = a.getPosition().getZ();
 
         int bX = (int) Math.round(b.getPosition().getX());
         int bY = (int) Math.round(b.getPosition().getY());
-        double bZ = b.getPosition().getZ();
 
         int cX = (int) Math.round(c.getPosition().getX());
         int cY = (int) Math.round(c.getPosition().getY());
-        double cZ = c.getPosition().getZ();
 
-        for (int y = aY; y <= bY; y++) {
+        int yAStart = Math.max(0, (int) a.getPosition().getY() +1);
+        double yBEnd = Math.min(zBuffer.getHeight() - 1, b.getPosition().getY());
+
+        for (int y = yAStart; y <= yBEnd; y++) {
             double tAB = (y - aY) / (double) (bY - aY);
             int xAB = (int) Math.round((1 - tAB) * aX + tAB * bX);
-            // TODO: zAB
             Vertex vAB = a.mul(1 - tAB).add(b.mul(tAB));
             // Vertex vAB = lerp.lerp(a, b, tAB);
 
             double tAC = (y - aY) / (double) (cY - aY);
             int xAC = (int) Math.round((1 - tAC) * aX + tAC * cX);
             Vertex vAC = a.mul(1 - tAC).add(c.mul(tAC));
-            // TODO: zAC
 
-//            int xAB = (int) AB.getPosition().getX();
-//            int xAC = (int) (AC.getPosition().getX() + 1);
+            if (xAB > xAC) {
+                int tmp = xAB;
+                xAB = xAC;
+                xAC = tmp;
 
-            // TODO: xAB musí být menší než xAC
-            for (int x = xAB; x <= xAC; x++) {
+                Vertex tmp2 = vAB;
+                vAB = vAC;
+                vAC = tmp2;
+            }
+
+            int xABStart = Math.max(0, (int) vAB.getPosition().getX() + 1);
+            double xACEnd = Math.min(zBuffer.getWidth() - 1, vAC.getPosition().getX());
+
+            for (int x = xABStart; x <= xACEnd; x++) {
                 double t = (x - xAB) / (double) (xAC - xAB);
                 Vertex pixel = vAB.mul(1 - t).add(vAC.mul(t));
-
-                // TODO: nový interpolační koef. -> počítám z xAB a xAC
-                // TODO: spočítám z
-                zBuffer.setPixelWithZTest(x, y, 0.5, pixel.getColor());
+                zBuffer.setPixelWithZTest(x, y, pixel.getPosition().getZ(), pixel.getColor());
             }
         }
 
-        for (int y = bY; y <= cY; y++) {
+        int yBStart = Math.max(0, (int) b.getPosition().getY() +1);
+        double yCEnd = Math.min(zBuffer.getHeight() - 1, c.getPosition().getY());
+
+        for (int y = yBStart; y <= yCEnd; y++) {
             double tBC = (y - bY) / (double) (cY - bY);
-            int xBC = (int) Math.round((1 - tBC) * bX + tBC * cX);
-            // TODO: zAB
+            int xBC = (int) ((1 - tBC) * bX + tBC * cX);
             Vertex vBC = b.mul(1 - tBC).add(c.mul(tBC));
             // Vertex vAB = lerp.lerp(a, b, tAB);
 
             double tAC = (y - aY) / (double) (cY - aY);
-            int xAC = (int) Math.round((1 - tAC) * aX + tAC * cX);
+            int xAC = (int) ((1 - tAC) * aX + tAC * cX);
             Vertex vAC = a.mul(1 - tAC).add(c.mul(tAC));
-            // TODO: zAC
 
-            // TODO: xAB musí být menší než xAC
-            for (int x = xBC; x <= xAC; x++) {
+            if (xBC > xAC) {
+                int tmp = xBC;
+                xBC = xAC;
+                xAC = tmp;
+
+                Vertex tmp2 = vBC;
+                vBC = vAC;
+                vAC = tmp2;
+            }
+
+            int xBCStart = Math.max(0, (int) vBC.getPosition().getX() + 1);
+            double xACEnd = Math.min(zBuffer.getWidth() - 1, vAC.getPosition().getX());
+
+            for (int x = xBCStart; x <= xACEnd; x++) {
                 double t = (x - xBC) / (double) (xAC - xBC);
                 Vertex pixel = vBC.mul(1 - t).add(vAC.mul(t));
-
-                // TODO: nový interpolační koef. -> počítám z xAB a xAC
-                // TODO: spočítám z
-                zBuffer.setPixelWithZTest(x, y, 0.5, pixel.getColor());
+                zBuffer.setPixelWithZTest(x, y, pixel.getPosition().getZ(), pixel.getColor());
             }
         }
     }
@@ -118,6 +130,8 @@ public class TriangleRasterizer {
         return new Vec3D(vec)
                 .mul(new Vec3D(1,-1,1))
                 .add(new Vec3D(1,1,0))
-                .mul(new Vec3D(zBuffer.getWidth() / 2f, zBuffer.getHeight() / 2f, 1));
+                .mul(new Vec3D(
+                        (zBuffer.getImageBuffer().getWidth() - 1) / 2.,
+                        (zBuffer.getImageBuffer().getHeight() - 1) / 2., 1));
     }
 }
