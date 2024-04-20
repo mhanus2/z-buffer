@@ -22,8 +22,6 @@ public class ZBuffer {
                 depthBuffer.setValue(x,y,z);
                 imageBuffer.setValue(x,y,col);
             }
-
-            imageBuffer.setValue(x, y, col);
         }
     }
 
@@ -33,6 +31,10 @@ public class ZBuffer {
 
     public int getHeight() {
         return imageBuffer.getHeight();
+    }
+
+    public void reset() {
+        depthBuffer.clear();
     }
 
     // TODO: odebrat, jen pro debug
