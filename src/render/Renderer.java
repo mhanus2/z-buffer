@@ -30,9 +30,9 @@ public class Renderer {
                         int indexC = start + 2;
                         start += 3;
 
-                        Vertex a = solid.getVertexBuffer().get(indexA);
-                        Vertex b = solid.getVertexBuffer().get(indexB);
-                        Vertex c = solid.getVertexBuffer().get(indexC);
+                        Vertex a = solid.getVertexBuffer().get(solid.getIndexBuffer().get(indexA));
+                        Vertex b = solid.getVertexBuffer().get(solid.getIndexBuffer().get(indexB));
+                        Vertex c = solid.getVertexBuffer().get(solid.getIndexBuffer().get(indexC));
                         clipTriangle(a, b, c, transformationMat);
                     }
                     break;
