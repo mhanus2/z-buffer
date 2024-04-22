@@ -8,8 +8,8 @@ public class Pyramid extends Solid {
     public Pyramid() {
         Vertex A = new Vertex(new Point3D(0,0,0), new Col(255,0,0));
         Vertex B = new Vertex(new Point3D(1,0,0), new Col(0,255,0));
-        Vertex C = new Vertex(new Point3D(0.5,1,0), new Col(0,0,255));
-        Vertex D = new Vertex(new Point3D(0.5,0.5,1), new Col(255,255,255));
+        Vertex C = new Vertex(new Point3D(0.5,Math.sqrt(3)/2,0), new Col(0,0,255));
+        Vertex D = new Vertex(new Point3D(0.5,Math.sqrt(3)/6,Math.sqrt(2./3)), new Col(255,255,255));
 
         vertexBuffer.add(A);
         vertexBuffer.add(B);
@@ -34,4 +34,4 @@ public class Pyramid extends Solid {
 
         partBuffer.add(new Part(TopologyType.TRIANGLES,0,4));
     }
-}
+ }

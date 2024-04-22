@@ -11,6 +11,7 @@ import view.Panel;
 
 import javax.swing.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 
 public class Controller3D implements Controller {
     private final Panel panel;
@@ -22,10 +23,12 @@ public class Controller3D implements Controller {
     private Mat4 proj;
     private double azimuth = 90;
     private double zenith = 0;
-    private Solid pyramid;
     int firstX;
     int firstY;
     private final double step = 0.1;
+    ArrayList<Solid> solids = new ArrayList<>();
+    int activeSolidIndex = 0;
+    Solid activeSolid;
 
     public Controller3D(Panel panel) {
         this.panel = panel;
@@ -56,7 +59,11 @@ public class Controller3D implements Controller {
                 20
         );
 
-        pyramid = new Pyramid();
+        Solid pyramid = new Pyramid();
+        Solid pyramid2 = new Pyramid();
+        solids.add(pyramid);
+        solids.add(pyramid2);
+        activeSolid = solids.get(activeSolidIndex);
     }
 
     @Override
@@ -142,6 +149,32 @@ public class Controller3D implements Controller {
                     case KeyEvent.VK_CONTROL:
                         camera = camera.down(step);
                         break;
+                    case KeyEvent.VK_N:
+                        if (activeSolidIndex == solids.size() - 1) {
+                            activeSolidIndex = 0;
+                        } else {
+                            activeSolidIndex++;
+                        }
+                        activeSolid = solids.get(activeSolidIndex);
+                        break;
+                    case KeyEvent.VK_R:
+                        activeSolid.setModel(activeSolid.getModel().mul(new Mat4RotY(-0.5)));
+                        break;
+                    case KeyEvent.VK_T:
+                        activeSolid.setModel(activeSolid.getModel().mul(new Mat4RotY(0.5)));
+                        break;
+                    case KeyEvent.VK_UP:
+                        activeSolid.setModel(activeSolid.getModel().mul(new Mat4Transl(0, 0, 0.5)));
+                        break;
+                    case KeyEvent.VK_DOWN:
+                        activeSolid.setModel(activeSolid.getModel().mul(new Mat4Transl(0, 0, -0.5)));
+                        break;
+                    case KeyEvent.VK_RIGHT:
+                        activeSolid.setModel(activeSolid.getModel().mul(new Mat4Transl(0.5, 0, 0)));
+                        break;
+                    case KeyEvent.VK_LEFT:
+                        activeSolid.setModel(activeSolid.getModel().mul(new Mat4Transl(-0.5, 0, 0)));
+                        break;
                 }
                 redraw();
             }
@@ -157,10 +190,7 @@ public class Controller3D implements Controller {
         renderer.setView(camera.getViewMatrix());
         renderer.setProj(proj);
 
-//        Mat4 cubeModelMat = new Mat4RotY(-0.5).mul(new Mat4Scale(0.5)).mul(new Mat4Transl(0.75, 1, 0));
-//        pyramid.setModel(cubeModelMat);
-
-        renderer.render(pyramid);
+        renderer.render(solids);
 
         panel.repaint();
     }

@@ -57,5 +57,4 @@ public class Vertex implements Vectorizable<Vertex> {
         return optional.map(vec3D -> new Vertex(new Point3D(vec3D), color, uv));
     }
 
-
 }

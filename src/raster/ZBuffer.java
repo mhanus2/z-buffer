@@ -14,7 +14,7 @@ public class ZBuffer {
     }
 
     public void setPixelWithZTest(int x, int y, double z, Col col) {
-        // Check if valid z value
+        // Check if z value is valid
         if (0<=z && z<=1) {
             // Load z value from DepthBuffer
             Optional<Double> zOptional = depthBuffer.getValue(x,y);

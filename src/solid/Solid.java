@@ -6,9 +6,9 @@ import transforms.Mat4Identity;
 import java.util.ArrayList;
 
 public abstract class Solid {
-    protected  final ArrayList<Part> partBuffer = new ArrayList<>();
-    protected  final ArrayList<Vertex> vertexBuffer = new ArrayList<>();
-    protected  final ArrayList<Integer> indexBuffer = new ArrayList<>();
+    protected final ArrayList<Part> partBuffer = new ArrayList<>();
+    protected final ArrayList<Vertex> vertexBuffer = new ArrayList<>();
+    protected final ArrayList<Integer> indexBuffer = new ArrayList<>();
     private Mat4 model = new Mat4Identity();
 
     public ArrayList<Part> getPartBuffer() {
