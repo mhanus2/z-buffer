@@ -6,11 +6,10 @@ import transforms.Vec3D;
 
 import java.util.Optional;
 
-public class TriangleRasterizer {
-    private final ZBuffer zBuffer;
+public class TriangleRasterizer extends Rasterizer {
 
     public TriangleRasterizer(ZBuffer zBuffer) {
-        this.zBuffer = zBuffer;
+        super(zBuffer);
     }
 
     public void rasterize(Vertex a, Vertex b, Vertex c) {
@@ -99,7 +98,7 @@ public class TriangleRasterizer {
             double tBC = (y - bY) / (double) (cY - bY);
             int xBC = (int) ((1 - tBC) * bX + tBC * cX);
             Vertex vBC = b.mul(1 - tBC).add(c.mul(tBC));
-            // Vertex vAB = lerp.lerp(a, b, tAB);
+//            Vertex vBC = lerp.lerp(a, b, tAB);
 
             double tAC = (y - aY) / (double) (cY - aY);
             int xAC = (int) ((1 - tAC) * aX + tAC * cX);
@@ -124,14 +123,5 @@ public class TriangleRasterizer {
                 zBuffer.setPixelWithZTest(x, y, pixel.getPosition().getZ(), pixel.getColor());
             }
         }
-    }
-
-    private Vec3D transformToWindow(Point3D vec) {
-        return new Vec3D(vec)
-                .mul(new Vec3D(1,-1,1))
-                .add(new Vec3D(1,1,0))
-                .mul(new Vec3D(
-                        (zBuffer.getImageBuffer().getWidth() - 1) / 2.,
-                        (zBuffer.getImageBuffer().getHeight() - 1) / 2., 1));
     }
 }
