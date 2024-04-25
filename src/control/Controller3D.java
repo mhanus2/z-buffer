@@ -1,21 +1,28 @@
 package control;
 
+import raster.LineRasterizer;
 import raster.Raster;
 import raster.TriangleRasterizer;
 import raster.ZBuffer;
 import render.Renderer;
+import solid.Axes;
 import solid.Pyramid;
 import solid.Solid;
 import transforms.*;
 import view.Panel;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class Controller3D implements Controller {
     private final Panel panel;
     private ZBuffer zBuffer;
+    private LineRasterizer lineRasterizer;
     private TriangleRasterizer triangleRasterizer;
     private Renderer renderer;
 
@@ -29,6 +36,7 @@ public class Controller3D implements Controller {
     ArrayList<Solid> solids = new ArrayList<>();
     int activeSolidIndex = 0;
     Solid activeSolid;
+    private BufferedImage texture;
 
     public Controller3D(Panel panel) {
         this.panel = panel;
@@ -40,9 +48,16 @@ public class Controller3D implements Controller {
     public void initObjects(Raster<Col> raster) {
         raster.setDefaultValue(new Col(0x101010));
 
+        try {
+            texture = ImageIO.read(new File("./res/texture-artwork.jpg"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         zBuffer = new ZBuffer(raster);
         triangleRasterizer = new TriangleRasterizer(zBuffer);
-        renderer = new Renderer(triangleRasterizer);
+        lineRasterizer = new LineRasterizer(zBuffer);
+        renderer = new Renderer(lineRasterizer, triangleRasterizer);
 
         camera = new Camera(
                 new Vec3D(0, -2, 0.3),
@@ -61,8 +76,10 @@ public class Controller3D implements Controller {
 
         Solid pyramid = new Pyramid();
         Solid pyramid2 = new Pyramid();
+        Solid axes = new Axes();
         solids.add(pyramid);
         solids.add(pyramid2);
+        solids.add(axes);
         activeSolid = solids.get(activeSolidIndex);
     }
 
@@ -160,7 +177,7 @@ public class Controller3D implements Controller {
                     case KeyEvent.VK_R:
                         activeSolid.setModel(activeSolid.getModel().mul(new Mat4RotY(-0.5)));
                         break;
-                    case KeyEvent.VK_T:
+                    case KeyEvent.VK_E:
                         activeSolid.setModel(activeSolid.getModel().mul(new Mat4RotY(0.5)));
                         break;
                     case KeyEvent.VK_UP:
@@ -174,6 +191,12 @@ public class Controller3D implements Controller {
                         break;
                     case KeyEvent.VK_LEFT:
                         activeSolid.setModel(activeSolid.getModel().mul(new Mat4Transl(-0.5, 0, 0)));
+                        break;
+                    case KeyEvent.VK_L:
+                        renderer.setRasterizer(lineRasterizer);
+                        break;
+                    case KeyEvent.VK_T:
+                        renderer.setRasterizer(triangleRasterizer);
                         break;
                 }
                 redraw();
