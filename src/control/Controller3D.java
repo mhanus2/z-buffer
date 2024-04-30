@@ -7,10 +7,7 @@ import raster.ZBuffer;
 import render.SolidRenderer;
 import shader.Shader;
 import shader.ShaderTexture;
-import solid.Axes;
-import solid.Cube;
-import solid.Pyramid;
-import solid.Solid;
+import solid.*;
 import transforms.*;
 import view.Panel;
 
@@ -80,13 +77,19 @@ public class Controller3D implements Controller {
         );
 
         Solid pyramid = new Pyramid();
-        pyramid.setTransform(new Mat4RotZ(45).mul(new Mat4Transl(0,-0.5,0)));
         Solid cube = new Cube();
-        cube.setShader(shaderTexture);
-        cube.setModel(new Mat4Transl(-1,0,0));
         axes = new Axes();
+        Solid surface = new Surface();
+
+        axes.setTransform(new Mat4Transl(0,-1,0));
+        pyramid.setTransform(new Mat4RotZ(45).mul(new Mat4Transl(0,0.5,0)));
+        cube.setTransform(new Mat4Scale(0.5).mul(new Mat4Transl(0,1,0.5)));
+        cube.setShader(shaderTexture);
+        surface.setTransform(new Mat4Transl(-1,0,0).mul(new Mat4RotY(0.5).mul(new Mat4RotX(0.2))));
+
         solids.add(pyramid);
         solids.add(cube);
+        solids.add(surface);
         activeSolid = solids.get(activeSolidIndex);
     }
 
