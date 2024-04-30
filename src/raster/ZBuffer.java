@@ -15,12 +15,12 @@ public class ZBuffer {
 
     public void setPixelWithZTest(int x, int y, double z, Col col) {
         // Check if z value is valid
-        if (0<=z && z<=1) {
+        if (0 <= z && z <= 1) {
             // Load z value from DepthBuffer
-            Optional<Double> zOptional = depthBuffer.getValue(x,y);
+            Optional<Double> zOptional = depthBuffer.getValue(x, y);
             if (zOptional.isPresent() && zOptional.get() > z) {
-                depthBuffer.setValue(x,y,z);
-                imageBuffer.setValue(x,y,col);
+                depthBuffer.setValue(x, y, z);
+                imageBuffer.setValue(x, y, col);
             }
         }
     }
@@ -35,10 +35,5 @@ public class ZBuffer {
 
     public void reset() {
         depthBuffer.clear();
-    }
-
-    // TODO: odebrat, jen pro debug
-    public Raster<Col> getImageBuffer() {
-        return imageBuffer;
     }
 }

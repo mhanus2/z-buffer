@@ -16,9 +16,4 @@ public interface Raster<T> {
 
     void setValue(int x, int y, T value);
 
-    default boolean isInside(int x, int y) {
-        // TODO: implementovat
-        return true;
-    }
-
 }
