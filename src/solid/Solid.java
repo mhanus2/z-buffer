@@ -39,8 +39,12 @@ public abstract class Solid {
     }
 
     public void setTransform(Mat4 transformMat) {
-        Mat4 inverseMat = this.model.inverse().get();
-        model = model.mul(inverseMat).mul(transformMat).mul(model);
+        if (this.model.inverse().isPresent()) {
+            Mat4 inverseMat = this.model.inverse().get();
+            model = model.mul(inverseMat).mul(transformMat).mul(model);
+        } else {
+            model = model.mul(transformMat);
+        }
     }
 
     public void setShader(Shader shader) {

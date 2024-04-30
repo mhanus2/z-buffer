@@ -7,7 +7,7 @@ import transforms.Vec3D;
 
 import java.util.Optional;
 
-public class LineRasterizer extends Rasterizer{
+public class LineRasterizer extends Rasterizer {
 
     public LineRasterizer(ZBuffer zBuffer) {
         super(zBuffer);
@@ -22,19 +22,17 @@ public class LineRasterizer extends Rasterizer{
 
     public void rasterize(Vertex a, Vertex b, Shader shader) {
         // Dehomogenization
-        Optional<Vertex> newA = a.dehomog();
-        Optional<Vertex> newB = b.dehomog();
-
-        if (newA.isEmpty() || newB.isEmpty()) return;
-
-        Vertex nA = newA.get();
-        Vertex nB = newB.get();
+        Optional<Vertex> aDehomogenized = a.dehomog();
+        Optional<Vertex> bDehomogenized = b.dehomog();
+        if (aDehomogenized.isEmpty() || bDehomogenized.isEmpty()) return;
+        a = aDehomogenized.get();
+        b = bDehomogenized.get();
 
         // Transformation to window
-        Vec3D vec3D1 = transformToWindow(nA.getPosition());
-        a = new Vertex(new Point3D(vec3D1), nA.getColor());
-        Vec3D vec3D2 = transformToWindow(nB.getPosition());
-        b = new Vertex(new Point3D(vec3D2), nB.getColor());
+        Vec3D vector1 = transformToWindow(a.getPosition());
+        a = new Vertex(new Point3D(vector1), a.getColor());
+        Vec3D vector2 = transformToWindow(b.getPosition());
+        b = new Vertex(new Point3D(vector2), b.getColor());
 
         // Sorting y
         if (a.getPosition().getY() > b.getPosition().getY()) {
@@ -43,33 +41,27 @@ public class LineRasterizer extends Rasterizer{
             b = temp;
         }
 
-        double dxAB = a.getPosition().getX() - b.getPosition().getX();
-        double dyAB = a.getPosition().getY() - b.getPosition().getY();
-        double dzAB = a.getPosition().getZ() - b.getPosition().getZ();
+        double dx = a.getPosition().getX() - b.getPosition().getX();
+        double dy = a.getPosition().getY() - b.getPosition().getY();
+        double dz = a.getPosition().getZ() - b.getPosition().getZ();
 
-        // Určíme, která osa je hlavní (ta s největším rozdílem)
-        double steps = Math.max(Math.abs(dxAB), Math.abs(dyAB));
-        steps = Math.max(steps, Math.abs(dzAB));
+        double steps = Math.max(Math.abs(dx), Math.abs(dy));
+        steps = Math.max(steps, Math.abs(dz));
 
-        // Vypočítáme přírůstky pro každou osu
-        double xIncrement = dxAB / steps;
-        double yIncrement = dyAB / steps;
-        double zIncrement = dzAB / steps;
+        double xIncrement = dx / steps;
+        double yIncrement = dy / steps;
+        double zIncrement = dz / steps;
 
-        // Inicializujeme proměnné pro průchod přímkou
         double x = a.getPosition().getX();
         double y = a.getPosition().getY();
         double z = a.getPosition().getZ();
 
-        // Projdeme přímkou a vykreslíme pixely, pokud jsou blíže než stávající pixel v z-bufferu
         for (int i = 0; i <= steps; i++) {
-            int xi = (int) Math.round(x);
-            int yi = (int) Math.round(y);
+            int xTmp = (int) Math.round(x);
+            int yTmp = (int) Math.round(y);
 
-            // Zkontrolujeme z-buffer
-            zBuffer.setPixelWithZTest(xi, yi, z, shader.getColor(a));
+            zBuffer.setPixelWithZTest(xTmp, yTmp, z, shader.getColor(a));
 
-            // Posuneme se na další bod na přímce
             x -= xIncrement;
             y -= yIncrement;
             z -= zIncrement;

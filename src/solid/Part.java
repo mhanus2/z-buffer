@@ -1,9 +1,9 @@
 package solid;
 
 public class Part {
-    private TopologyType type;
-    private int start;
-    private int count;
+    private final TopologyType type;
+    private final int start;
+    private final int count;
 
     public Part(TopologyType type, int start, int count) {
         this.type = type;

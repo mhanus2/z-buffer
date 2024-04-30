@@ -10,7 +10,7 @@ import java.util.Optional;
 public class Vertex implements Vectorizable<Vertex> {
     private final Point3D position;
     private final Col color;
-    private Vec2D uv;
+    private final Vec2D uv;
 
     public Vertex(Point3D position, Col color) {
         this.position = position;
@@ -38,7 +38,11 @@ public class Vertex implements Vectorizable<Vertex> {
 
     @Override
     public Vertex mul(double k) {
-        return new Vertex(position.mul(k), color.mul(k), uv.mul(k));
+        return new Vertex(
+                position.mul(k),
+                color.mul(k),
+                uv.mul(k)
+        );
     }
 
     @Override
@@ -50,7 +54,6 @@ public class Vertex implements Vectorizable<Vertex> {
         );
 
     }
-
 
     public Optional<Vertex> dehomog() {
         Optional<Vec3D> optional = position.dehomog();
