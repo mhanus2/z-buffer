@@ -1,5 +1,6 @@
 package raster;
 
+import shader.Shader;
 import solid.Vertex;
 import transforms.Point3D;
 import transforms.Vec3D;
@@ -13,13 +14,13 @@ public class LineRasterizer extends Rasterizer{
     }
 
     @Override
-    public void rasterize(Vertex a, Vertex b, Vertex c) {
-        rasterize(a, b);
-        rasterize(b, c);
-        rasterize(a, c);
+    public void rasterize(Vertex a, Vertex b, Vertex c, Shader shader) {
+        rasterize(a, b, shader);
+        rasterize(b, c, shader);
+        rasterize(a, c, shader);
     }
 
-    public void rasterize(Vertex a, Vertex b) {
+    public void rasterize(Vertex a, Vertex b, Shader shader) {
         // Dehomogenization
         Optional<Vertex> newA = a.dehomog();
         Optional<Vertex> newB = b.dehomog();
@@ -56,7 +57,9 @@ public class LineRasterizer extends Rasterizer{
         double zIncrement = dzAB / steps;
 
         // Inicializujeme proměnné pro průchod přímkou
-        double x = a.getPosition().getX(), y = a.getPosition().getY(), z = a.getPosition().getZ();
+        double x = a.getPosition().getX();
+        double y = a.getPosition().getY();
+        double z = a.getPosition().getZ();
 
         // Projdeme přímkou a vykreslíme pixely, pokud jsou blíže než stávající pixel v z-bufferu
         for (int i = 0; i <= steps; i++) {
@@ -64,12 +67,12 @@ public class LineRasterizer extends Rasterizer{
             int yi = (int) Math.round(y);
 
             // Zkontrolujeme z-buffer
-            zBuffer.setPixelWithZTest(xi, yi, z, a.getColor());
+            zBuffer.setPixelWithZTest(xi, yi, z, shader.getColor(a));
 
             // Posuneme se na další bod na přímce
             x -= xIncrement;
             y -= yIncrement;
-            z += zIncrement;
+            z -= zIncrement;
         }
     }
 }

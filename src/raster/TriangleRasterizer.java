@@ -1,5 +1,6 @@
 package raster;
 
+import shader.Shader;
 import solid.Vertex;
 import transforms.Point3D;
 import transforms.Vec3D;
@@ -12,7 +13,7 @@ public class TriangleRasterizer extends Rasterizer {
         super(zBuffer);
     }
 
-    public void rasterize(Vertex a, Vertex b, Vertex c) {
+    public void rasterize(Vertex a, Vertex b, Vertex c, Shader shader) {
         // Dehomogenization
         Optional<Vertex> newA = a.dehomog();
         Optional<Vertex> newB = b.dehomog();
@@ -26,11 +27,11 @@ public class TriangleRasterizer extends Rasterizer {
 
         // Transformation to window
         Vec3D vec3D1 = transformToWindow(nA.getPosition());
-        a = new Vertex(new Point3D(vec3D1), nA.getColor());
+        a = new Vertex(new Point3D(vec3D1), nA.getColor(), nA.getUv());
         Vec3D vec3D2 = transformToWindow(nB.getPosition());
-        b = new Vertex(new Point3D(vec3D2), nB.getColor());
+        b = new Vertex(new Point3D(vec3D2), nB.getColor(), nB.getUv());
         Vec3D vec3D3 = transformToWindow(nC.getPosition());
-        c = new Vertex(new Point3D(vec3D3), nC.getColor());
+        c = new Vertex(new Point3D(vec3D3), nC.getColor(), nC.getUv());
 
         // Sorting y
         if (a.getPosition().getY() > b.getPosition().getY()) {
@@ -49,6 +50,10 @@ public class TriangleRasterizer extends Rasterizer {
             b = temp;
         }
 
+        a = a.mul(1/a.getPosition().getW());
+        b = b.mul(1/b.getPosition().getW());
+        c = c.mul(1/c.getPosition().getW());
+
         int aX = (int) Math.round(a.getPosition().getX());
         int aY = (int) Math.round(a.getPosition().getY());
 
@@ -65,7 +70,6 @@ public class TriangleRasterizer extends Rasterizer {
             double tAB = (y - aY) / (double) (bY - aY);
             int xAB = (int) Math.round((1 - tAB) * aX + tAB * bX);
             Vertex vAB = a.mul(1 - tAB).add(b.mul(tAB));
-            // Vertex vAB = lerp.lerp(a, b, tAB);
 
             double tAC = (y - aY) / (double) (cY - aY);
             int xAC = (int) Math.round((1 - tAC) * aX + tAC * cX);
@@ -87,7 +91,7 @@ public class TriangleRasterizer extends Rasterizer {
             for (int x = xABStart; x <= xACEnd; x++) {
                 double t = (x - xAB) / (double) (xAC - xAB);
                 Vertex pixel = vAB.mul(1 - t).add(vAC.mul(t));
-                zBuffer.setPixelWithZTest(x, y, pixel.getPosition().getZ(), pixel.getColor());
+                zBuffer.setPixelWithZTest(x, y, pixel.getPosition().getZ(), shader.getColor(pixel));
             }
         }
 
@@ -96,12 +100,11 @@ public class TriangleRasterizer extends Rasterizer {
 
         for (int y = yBStart; y <= yCEnd; y++) {
             double tBC = (y - bY) / (double) (cY - bY);
-            int xBC = (int) ((1 - tBC) * bX + tBC * cX);
+            int xBC = (int) Math.round((1 - tBC) * bX + tBC * cX);
             Vertex vBC = b.mul(1 - tBC).add(c.mul(tBC));
-//            Vertex vBC = lerp.lerp(a, b, tAB);
 
             double tAC = (y - aY) / (double) (cY - aY);
-            int xAC = (int) ((1 - tAC) * aX + tAC * cX);
+            int xAC = (int) Math.round((1 - tAC) * aX + tAC * cX);
             Vertex vAC = a.mul(1 - tAC).add(c.mul(tAC));
 
             if (xBC > xAC) {
@@ -120,7 +123,7 @@ public class TriangleRasterizer extends Rasterizer {
             for (int x = xBCStart; x <= xACEnd; x++) {
                 double t = (x - xBC) / (double) (xAC - xBC);
                 Vertex pixel = vBC.mul(1 - t).add(vAC.mul(t));
-                zBuffer.setPixelWithZTest(x, y, pixel.getPosition().getZ(), pixel.getColor());
+                zBuffer.setPixelWithZTest(x, y, pixel.getPosition().getZ(), shader.getColor(pixel));
             }
         }
     }
