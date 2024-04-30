@@ -28,20 +28,17 @@ public class Controller3D implements Controller {
     private LineRasterizer lineRasterizer;
     private TriangleRasterizer triangleRasterizer;
     private SolidRenderer renderer;
-
     private Camera camera;
     private Mat4 proj;
     private double azimuth = 90;
     private double zenith = 0;
-    int firstX;
-    int firstY;
+    private int xStart;
+    private int yStart;
     private final double step = 0.1;
-    ArrayList<Solid> solids = new ArrayList<>();
-    int activeSolidIndex = 0;
-    Solid activeSolid;
-    private BufferedImage texture;
-    Solid axes;
-    Shader shaderTexture;
+    private final ArrayList<Solid> solids = new ArrayList<>();
+    private int activeSolidIndex = 0;
+    private Solid activeSolid;
+    private Solid axes;
 
     public Controller3D(Panel panel) {
         this.panel = panel;
@@ -53,6 +50,7 @@ public class Controller3D implements Controller {
     public void initObjects(Raster<Col> raster) {
         raster.setDefaultValue(new Col(0x101010));
 
+        BufferedImage texture;
         try {
             texture = ImageIO.read(new File("./res/texture-artwork.jpg"));
         } catch (IOException e) {
@@ -62,7 +60,7 @@ public class Controller3D implements Controller {
         zBuffer = new ZBuffer(raster);
         triangleRasterizer = new TriangleRasterizer(zBuffer);
         lineRasterizer = new LineRasterizer(zBuffer);
-        shaderTexture =  new ShaderTexture(texture);
+        Shader shaderTexture =  new ShaderTexture(texture);
 
         renderer = new SolidRenderer(lineRasterizer, triangleRasterizer);
 
@@ -106,8 +104,8 @@ public class Controller3D implements Controller {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
-                    firstX = e.getX();
-                    firstY = e.getY();
+                    xStart = e.getX();
+                    yStart = e.getY();
                 }
                 redraw();
             }
@@ -119,19 +117,19 @@ public class Controller3D implements Controller {
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     panel.clear();
 
-                    int dy = e.getY() - firstY;
+                    int dy = e.getY() - yStart;
                     zenith -= (double) (180 * dy) / panel.getHeight();
 
                     if (zenith > 90) zenith = 90;
                     if (zenith < -90) zenith = -90;
 
-                    int dx = e.getX() - firstX;
+                    int dx = e.getX() - xStart;
 
                     azimuth -= (double) (180 * dx) / panel.getWidth();
                     azimuth = azimuth % 360;
 
-                    firstX = e.getX();
-                    firstY = e.getY();
+                    xStart = e.getX();
+                    yStart = e.getY();
                 }
                 redraw();
             }
