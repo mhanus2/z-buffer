@@ -5,7 +5,10 @@ import raster.Raster;
 import raster.TriangleRasterizer;
 import raster.ZBuffer;
 import render.Renderer;
+import shader.Shader;
+import shader.ShaderTexture;
 import solid.Axes;
+import solid.Cube;
 import solid.Pyramid;
 import solid.Solid;
 import transforms.*;
@@ -37,6 +40,8 @@ public class Controller3D implements Controller {
     int activeSolidIndex = 0;
     Solid activeSolid;
     private BufferedImage texture;
+    Solid axes;
+    Shader shaderTexture;
 
     public Controller3D(Panel panel) {
         this.panel = panel;
@@ -57,6 +62,8 @@ public class Controller3D implements Controller {
         zBuffer = new ZBuffer(raster);
         triangleRasterizer = new TriangleRasterizer(zBuffer);
         lineRasterizer = new LineRasterizer(zBuffer);
+        shaderTexture =  new ShaderTexture(texture);
+
         renderer = new Renderer(lineRasterizer, triangleRasterizer);
 
         camera = new Camera(
@@ -75,11 +82,13 @@ public class Controller3D implements Controller {
         );
 
         Solid pyramid = new Pyramid();
-        Solid pyramid2 = new Pyramid();
-        Solid axes = new Axes();
+        pyramid.setTransform(new Mat4RotZ(45).mul(new Mat4Transl(0,-0.5,0)));
+        Solid cube = new Cube();
+        cube.setShader(shaderTexture);
+        cube.setModel(new Mat4Transl(-1,0,0));
+        axes = new Axes();
         solids.add(pyramid);
-        solids.add(pyramid2);
-        solids.add(axes);
+        solids.add(cube);
         activeSolid = solids.get(activeSolidIndex);
     }
 
@@ -174,11 +183,17 @@ public class Controller3D implements Controller {
                         }
                         activeSolid = solids.get(activeSolidIndex);
                         break;
-                    case KeyEvent.VK_R:
-                        activeSolid.setModel(activeSolid.getModel().mul(new Mat4RotY(-0.5)));
-                        break;
                     case KeyEvent.VK_E:
-                        activeSolid.setModel(activeSolid.getModel().mul(new Mat4RotY(0.5)));
+                        activeSolid.setTransform(new Mat4RotY(-0.5));
+                        break;
+                    case KeyEvent.VK_R:
+                        activeSolid.setTransform(new Mat4RotY(0.5));
+                        break;
+                    case KeyEvent.VK_SHIFT:
+                        activeSolid.setTransform(new Mat4Scale(1.5));
+                        break;
+                    case KeyEvent.VK_C:
+                        activeSolid.setTransform(new Mat4Scale(0.5));
                         break;
                     case KeyEvent.VK_UP:
                         activeSolid.setModel(activeSolid.getModel().mul(new Mat4Transl(0, 0, 0.5)));
@@ -213,6 +228,7 @@ public class Controller3D implements Controller {
         renderer.setView(camera.getViewMatrix());
         renderer.setProj(proj);
 
+        renderer.render(axes);
         renderer.render(solids);
 
         panel.repaint();

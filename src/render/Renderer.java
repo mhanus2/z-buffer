@@ -3,6 +3,7 @@ package render;
 import raster.LineRasterizer;
 import raster.Rasterizer;
 import raster.TriangleRasterizer;
+import shader.Shader;
 import solid.Part;
 import solid.Solid;
 import solid.Vertex;
@@ -35,7 +36,7 @@ public class Renderer {
 
                         Vertex a = solid.getVertexBuffer().get(solid.getIndexBuffer().get(indexA));
                         Vertex b = solid.getVertexBuffer().get(solid.getIndexBuffer().get(indexB));
-                        clipLine(a, b, transformationMat);
+                        clipLine(a, b, transformationMat, solid.getShader());
                     }
                     break;
                 case TRIANGLES:
@@ -49,14 +50,14 @@ public class Renderer {
                         Vertex a = solid.getVertexBuffer().get(solid.getIndexBuffer().get(indexA));
                         Vertex b = solid.getVertexBuffer().get(solid.getIndexBuffer().get(indexB));
                         Vertex c = solid.getVertexBuffer().get(solid.getIndexBuffer().get(indexC));
-                        clipTriangle(a, b, c, transformationMat);
+                        clipTriangle(a, b, c, transformationMat, solid.getShader());
                     }
                     break;
             }
         }
     }
 
-    private void clipLine(Vertex a, Vertex b, Mat4 transformationMat) {
+    private void clipLine(Vertex a, Vertex b, Mat4 transformationMat, Shader shader) {
         //Trasformace až do projekce
         Vertex nA = new Vertex(a.getPosition().mul(transformationMat), a.getColor(), a.getUv());
         Vertex nB = new Vertex(b.getPosition().mul(transformationMat), b.getColor(), b.getUv());
@@ -92,13 +93,13 @@ public class Renderer {
             double tv1 = (zMin - nB.getPosition().getZ()) / (nB.getPosition().getZ() - nA.getPosition().getZ());
             Vertex v1 = nA.mul(1 - tv1).add(nB.mul(tv1));
 
-            lineRasterizer.rasterize(nA, v1);
+            lineRasterizer.rasterize(nA, v1, shader);
             return;
         }
-        lineRasterizer.rasterize(nA, nB);
+        lineRasterizer.rasterize(nA, nB, shader);
     }
 
-    private void clipTriangle(Vertex a, Vertex b, Vertex c, Mat4 transformationMat) {
+    private void clipTriangle(Vertex a, Vertex b, Vertex c, Mat4 transformationMat, Shader shader) {
         Vertex newA = new Vertex(a.getPosition().mul(transformationMat), a.getColor(), a.getUv());
         Vertex newB = new Vertex(b.getPosition().mul(transformationMat), b.getColor(), b.getUv());
         Vertex newC = new Vertex(c.getPosition().mul(transformationMat), c.getColor(), c.getUv());
@@ -145,7 +146,7 @@ public class Renderer {
             double tv2 = (zMin - newA.getPosition().getZ()) / (newC.getPosition().getZ() - newA.getPosition().getZ());
             Vertex v2 = newA.mul(1 - tv2).add(newC.mul(tv2));
 
-            rasterizer.rasterize(newA, v1, v2);
+            rasterizer.rasterize(newA, v1, v2, shader);
             return;
         }
 
@@ -156,12 +157,12 @@ public class Renderer {
             double tv2 = -newB.getPosition().getZ() / (newC.getPosition().getZ() - newB.getPosition().getZ());
             Vertex v2 = newB.mul(1 - tv2).add(newC.mul(tv1));
 
-            rasterizer.rasterize(newA, newB, v2);
-            rasterizer.rasterize(newA, v1, v2);
+            rasterizer.rasterize(newA, newB, v2, shader);
+            rasterizer.rasterize(newA, v1, v2, shader);
             return;
         }
 
-        rasterizer.rasterize(newA, newB, newC);
+        rasterizer.rasterize(newA, newB, newC, shader);
     }
 
     public void render(List<Solid> scene) {
