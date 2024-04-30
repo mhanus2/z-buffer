@@ -4,7 +4,7 @@ import raster.LineRasterizer;
 import raster.Raster;
 import raster.TriangleRasterizer;
 import raster.ZBuffer;
-import render.Renderer;
+import render.SolidRenderer;
 import shader.Shader;
 import shader.ShaderTexture;
 import solid.Axes;
@@ -27,7 +27,7 @@ public class Controller3D implements Controller {
     private ZBuffer zBuffer;
     private LineRasterizer lineRasterizer;
     private TriangleRasterizer triangleRasterizer;
-    private Renderer renderer;
+    private SolidRenderer renderer;
 
     private Camera camera;
     private Mat4 proj;
@@ -64,7 +64,7 @@ public class Controller3D implements Controller {
         lineRasterizer = new LineRasterizer(zBuffer);
         shaderTexture =  new ShaderTexture(texture);
 
-        renderer = new Renderer(lineRasterizer, triangleRasterizer);
+        renderer = new SolidRenderer(lineRasterizer, triangleRasterizer);
 
         camera = new Camera(
                 new Vec3D(0, -2, 0.3),
