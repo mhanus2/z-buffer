@@ -18,6 +18,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Controller3D implements Controller {
     private final Panel panel;
@@ -42,11 +44,11 @@ public class Controller3D implements Controller {
         initObjects(panel.getRaster());
         initListeners();
         redraw();
+        startRotationTimer();
     }
 
     public void initObjects(Raster<Col> raster) {
         raster.setDefaultValue(new Col(0x101010));
-
         BufferedImage texture;
         try {
             texture = ImageIO.read(new File("./res/texture-artwork.jpg"));
@@ -57,7 +59,7 @@ public class Controller3D implements Controller {
         zBuffer = new ZBuffer(raster);
         triangleRasterizer = new TriangleRasterizer(zBuffer);
         lineRasterizer = new LineRasterizer(zBuffer);
-        Shader shaderTexture =  new ShaderTexture(texture);
+        Shader shaderTexture = new ShaderTexture(texture);
 
         renderer = new SolidRenderer(lineRasterizer, triangleRasterizer);
 
@@ -81,17 +83,30 @@ public class Controller3D implements Controller {
         axes = new Axes();
         Solid surface = new Surface();
 
-        axes.setTransform(new Mat4Transl(0,-1,0));
-        pyramid.setTransform(new Mat4RotZ(45).mul(new Mat4Transl(0,0.5,0)));
-        cube.setTransform(new Mat4Scale(0.5).mul(new Mat4Transl(0,1,0.5)));
+        axes.setTransform(new Mat4Transl(0, -1, 0));
+        pyramid.setTransform(new Mat4RotZ(45).mul(new Mat4Transl(0, 0.5, 0)));
+        cube.setTransform(new Mat4Scale(0.5).mul(new Mat4Transl(0, 1, 0.5)));
         cube.setShader(shaderTexture);
-        surface.setTransform(new Mat4Transl(-1,0,0).mul(new Mat4RotY(0.5).mul(new Mat4RotX(0.2))));
+        surface.setTransform(new Mat4Transl(-1, 0, 0).mul(new Mat4RotY(0.5).mul(new Mat4RotX(0.2))));
 
         solids.add(pyramid);
         solids.add(cube);
         solids.add(surface);
         activeSolid = solids.get(activeSolidIndex);
+
     }
+
+    private void startRotationTimer() {
+        Timer rotationTimer = new Timer();
+        rotationTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                activeSolid.setTransform(new Mat4RotXYZ(0.5, 0.5, 0.5));
+                redraw();
+            }
+        }, 0, 1000);
+    }
+
 
     @Override
     public void initListeners() {
