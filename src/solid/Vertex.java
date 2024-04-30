@@ -10,9 +10,7 @@ import java.util.Optional;
 public class Vertex implements Vectorizable<Vertex> {
     private final Point3D position;
     private final Col color;
-    private final Vec2D uv;
-
-    // TODO: souřadnice do textury atd.
+    private Vec2D uv;
 
     public Vertex(Point3D position, Col color) {
         this.position = position;
@@ -33,6 +31,7 @@ public class Vertex implements Vectorizable<Vertex> {
     public Col getColor() {
         return color;
     }
+
     public Vec2D getUv() {
         return uv;
     }
@@ -51,6 +50,7 @@ public class Vertex implements Vectorizable<Vertex> {
         );
 
     }
+
 
     public Optional<Vertex> dehomog() {
         Optional<Vec3D> optional = position.dehomog();
