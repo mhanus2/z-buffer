@@ -1,5 +1,6 @@
 package raster;
 
+import shader.Shader;
 import solid.Vertex;
 import transforms.Point3D;
 import transforms.Vec3D;
@@ -11,7 +12,7 @@ public abstract class Rasterizer {
         this.zBuffer = zBuffer;
     }
 
-    public abstract void rasterize(Vertex a, Vertex b, Vertex c);
+    public abstract void rasterize(Vertex a, Vertex b, Vertex c, Shader shader);
 
     protected Vec3D transformToWindow(Point3D vec) {
         return new Vec3D(vec)
